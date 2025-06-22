@@ -1,0 +1,8 @@
+[project]
+name = "wechat-jump"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "labelimg>=1.8.6",
+    "ultralytics>=8.3.158",
+]
