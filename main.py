@@ -12,7 +12,7 @@ class Jump:
         self.save_floder = f"./dataset/predict_{int(time.time())}"
 
     def predict(self, image: str):
-        results = self.model.predict(image, conf=0.45, iou=0.01)
+        results = self.model.predict(image, conf=0.50, iou=0.01, verbose=False)
         # 保存预测结果
         os.makedirs(self.save_floder, exist_ok=True)
         save_name = f"{self.save_floder}/results_{time.time()}.png"
@@ -66,7 +66,7 @@ class Jump:
     
 
 if __name__ == "__main__":
-    jump = Jump("./runs/detect/train/weights/best.pt")
+    jump = Jump("./best.pt")
     # jump.adb_screenshot()
     # print(jump.predict("./iphone.png"))
     while True:
