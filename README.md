@@ -1,7 +1,7 @@
 # 微信跳一跳自动化项目 🎮
 
 <div align='center'>
-    <img src="./images/results_1750811815.365171.png" alt="alt text" width="50%">
+    <img src="./images/results_1750811815.365171.png" alt="alt text" width="35%">
 </div>
 
 基于YOLO目标检测的微信跳一跳游戏自动化工具，通过计算机视觉识别游戏中的小人和目标平台，自动计算距离并控制手机进行精准跳跃。
