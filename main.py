@@ -1,10 +1,10 @@
-import numpy as np
 from ultralytics import YOLO
 import subprocess
 import random
 import time
 import os
 import numpy as np
+import datetime
 
 
 class Jump:
@@ -13,7 +13,7 @@ class Jump:
         self.save_floder = f"./dataset/predict_{int(time.time())}"
 
     def predict(self, image: str):
-        results = self.model.predict(image, conf=0.2, iou=0.7, verbose=False)
+        results = self.model.predict(image, conf=0.2, iou=0.1, verbose=False)
         # 保存预测结果
         os.makedirs(self.save_floder, exist_ok=True)
         save_name = f"{self.save_floder}/results_{time.time()}.png"
@@ -75,7 +75,7 @@ class Jump:
     
 
 if __name__ == "__main__":
-    jump = Jump("./humen_best.pt")
+    jump = Jump("./best.pt")
     # jump.adb_screenshot()
     # print(jump.predict("./iphone.png"))
     while True:
