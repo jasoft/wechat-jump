@@ -12,87 +12,32 @@ class Jump:
         self.model = YOLO(model_path)
         self.save_floder = f"./dataset/predict_{int(time.time())}"
 
-    def filter_boxes(self, boxes, scores, iou_threshold=0.5):
-        """
-        过滤掉重叠的检测框
-        :param boxes: 检测框列表，每个检测框为 [x, y, w, h]
-        :param scores: 检测框的置信度分数列表
-        :param iou_threshold: IOU 阈值，默认为 0.5
-        :return: 过滤后的检测框索引列表
-        """
-        if len(boxes) == 0:
-            return []
-
-        # 将检测框转换为左上角和右下角坐标
-        x1 = boxes[:, 0] - boxes[:, 2] / 2
-        y1 = boxes[:, 1] - boxes[:, 3] / 2
-        x2 = boxes[:, 0] + boxes[:, 2] / 2
-        y2 = boxes[:, 1] + boxes[:, 3] / 2
-
-        # 计算每个检测框的面积
-        areas = (x2 - x1) * (y2 - y1)
-
-        # 按照置信度分数从高到低排序
-        order = scores.argsort()[::-1]
-
-        keep = []
-        while order.size > 0:
-            i = order[0]
-            keep.append(i)
-
-            # 计算当前检测框与剩余检测框的 IOU
-            xx1 = np.maximum(x1[i], x1[order[1:]])
-            yy1 = np.maximum(y1[i], y1[order[1:]])
-            xx2 = np.minimum(x2[i], x2[order[1:]])
-            yy2 = np.minimum(y2[i], y2[order[1:]])
-
-            w = np.maximum(0.0, xx2 - xx1)
-            h = np.maximum(0.0, yy2 - yy1)
-            inter = w * h
-
-            ovr = inter / (areas[i] + areas[order[1:]] - inter)
-
-            # 保留 IOU 小于阈值的检测框
-            inds = np.where(ovr <= iou_threshold)[0]
-            order = order[inds + 1]
-
-        return boxes[keep]
-
     def predict(self, image: str):
-        results = self.model.predict(image, conf=0.3, iou=0.5, verbose=False)
+        results = self.model.predict(image, conf=0.2, iou=0.7, verbose=False)
         # 保存预测结果
         os.makedirs(self.save_floder, exist_ok=True)
         save_name = f"{self.save_floder}/results_{time.time()}.png"
         results[0].save(filename=save_name)
 
-        # 获取检测框和置信度
+        # 获取检测框和类别
         boxes = results[0].boxes.xywh.cpu().numpy()  # 转换为numpy数组
-        scores = results[0].boxes.conf.cpu().numpy()  # 获取置信度分数
-        
-        # 使用filter_boxes过滤重叠的检测框
-        filtered_boxes = self.filter_boxes(boxes, scores, iou_threshold=0.3)
-        
-        # 按y坐标排序过滤后的检测框
-        boxes_xywh = sorted(filtered_boxes.tolist(), key=lambda x: x[1])
-        
-        # 确保至少有两个检测框
-        if len(boxes_xywh) < 2:
-            print(f"警告: 只检测到 {len(boxes_xywh)} 个目标，可能影响跳跃精度")
-            if len(boxes_xywh) == 0:
-                return 0
-            # 如果只有一个框，返回一个默认距离
-            return 100.0
-            
-        box1, box2 = boxes_xywh[0], boxes_xywh[1]
+        cls = results[0].boxes.cls.cpu().numpy()  # 获取类别
 
-        # 计算两个框框中心点 欧氏距离
-        center1_x, center1_y = box1[0], box1[1]
-        center2_x, center2_y = box2[0], box2[1]
-
-        # 计算欧氏距离
-        distance = np.sqrt((center1_x - center2_x) ** 2 + (center1_y - center2_y) ** 2)
-
-        return round(distance, 3)
+        # 筛选出类别为0的检测框 cube
+        cube_boxes = boxes[cls == 0]
+        cube_boxes = sorted(cube_boxes, key=lambda x: x[1])
+        # 筛选出类别为1的检测框
+        humen_boxes = boxes[cls == 1]
+        
+        # 计算距离
+        if len(cube_boxes) > 0 and len(humen_boxes) > 0:
+            cube_box = cube_boxes[0]
+            humen_box = humen_boxes[0]
+            # 计算距离
+            distance = np.sqrt((cube_box[0] - humen_box[0]) ** 2 + (cube_box[1] - (humen_box[1] + humen_box[3] * 0.5)) ** 2)
+            return round(distance, 3)
+        else:
+            return 0
 
     # 使用adb控制手机屏幕截图，并将截图传输到本机，同时删除手机目录的截图
     def adb_screenshot(self):
@@ -130,8 +75,8 @@ class Jump:
     
 
 if __name__ == "__main__":
-    jump = Jump("./best.pt")
+    jump = Jump("./humen_best.pt")
     # jump.adb_screenshot()
     # print(jump.predict("./iphone.png"))
     while True:
-        jump.jump(k=1.2)
+        jump.jump(k=1.18)
