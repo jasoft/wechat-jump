@@ -13,7 +13,7 @@ class Jump:
         self.save_floder = f"./dataset/predict_{int(time.time())}"
 
     def predict(self, image: str):
-        results = self.model.predict(image, conf=0.2, iou=0.1, verbose=False)
+        results = self.model.predict(image, conf=0.2, iou=0.9, verbose=False)
         # 保存预测结果
         os.makedirs(self.save_floder, exist_ok=True)
         save_name = f"{self.save_floder}/results_{time.time()}.png"
