@@ -57,8 +57,7 @@ class DebugJump(Jump):
 
         player_center = None
         platform_center = None
-        best_platform = None
-        best_platform_confidence = 0
+        all_platforms = []  # 存储所有平台信息
 
         # 处理检测结果
         for result in results:
@@ -113,13 +112,39 @@ class DebugJump(Jump):
                         debug_info["player_detected"] = True
                         debug_info["player_center"] = player_center
                     elif class_name == "cube":  # 平台
-                        # 选择置信度最高的平台作为目标
-                        if confidence > best_platform_confidence:
-                            best_platform_confidence = confidence
-                            best_platform = (center_x, center_y)
-                            platform_center = (center_x, center_y)
-                            debug_info["platform_detected"] = True
-                            debug_info["platform_center"] = platform_center
+                        # 收集所有平台信息
+                        all_platforms.append(
+                            {
+                                "center": (center_x, center_y),
+                                "confidence": confidence,
+                                "y": center_y,
+                            }
+                        )
+                        debug_info["platform_detected"] = True
+
+        # 选择目标平台（应用与main.py相同的逻辑）
+        if player_center and all_platforms:
+            player_y = player_center[1]
+
+            # 过滤掉Y坐标大于等于玩家的平台（已经跳过的或当前站立的平台）
+            valid_platforms = [
+                p
+                for p in all_platforms
+                if p["y"] < player_y - 20  # 添加20像素的缓冲区
+            ]
+
+            if valid_platforms:
+                # 选择最近的前方平台（Y坐标最大的）
+                target_platform = max(valid_platforms, key=lambda p: p["y"])
+                platform_center = target_platform["center"]
+                debug_info["platform_center"] = platform_center
+
+                print(
+                    f"🎯 目标选择: 玩家Y={player_y}, 目标平台Y={target_platform['y']}, 有效平台数={len(valid_platforms)}"
+                )
+            else:
+                print("⚠️ 未找到有效的目标平台（所有平台都在玩家后方）")
+                platform_center = None
 
         # 计算距离
         distance = 0

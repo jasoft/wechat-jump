@@ -60,6 +60,7 @@ def analyze_image(
     detections = []
     player_center = None
     platform_center = None
+    all_platforms = []  # 存储所有平台信息
 
     for result in results:
         boxes = result.boxes
@@ -91,7 +92,13 @@ def analyze_image(
                 if class_name == "humen":  # 玩家
                     player_center = (center_x, center_y)
                 elif class_name == "cube":  # 平台
-                    platform_center = (center_x, center_y)
+                    all_platforms.append(
+                        {
+                            "center": (center_x, center_y),
+                            "confidence": confidence,
+                            "y": center_y,
+                        }
+                    )
 
     # 显示检测结果统计
     print(f"\n📊 检测结果统计:")
@@ -111,6 +118,35 @@ def analyze_image(
         print(f"      边界框: {detection['bbox']}")
         print(f"      中心点: {detection['center']}")
         print(f"      尺寸: {detection['size']}")
+
+    # 选择目标平台（应用与main.py相同的逻辑）
+    if player_center and all_platforms:
+        player_y = player_center[1]
+
+        # 过滤掉Y坐标大于等于玩家的平台（已经跳过的或当前站立的平台）
+        valid_platforms = [
+            p
+            for p in all_platforms
+            if p["y"] < player_y - 20  # 添加20像素的缓冲区
+        ]
+
+        if valid_platforms:
+            # 选择最近的前方平台（Y坐标最大的）
+            target_platform = max(valid_platforms, key=lambda p: p["y"])
+            platform_center = target_platform["center"]
+
+            print(f"\n🎯 平台选择逻辑:")
+            print(f"   玩家Y坐标: {player_y}")
+            print(f"   总平台数: {len(all_platforms)}")
+            print(f"   有效平台数: {len(valid_platforms)}")
+            print(f"   选择的平台Y坐标: {target_platform['y']}")
+            print(f"   选择的平台置信度: {target_platform['confidence']:.3f}")
+        else:
+            print(f"\n⚠️ 平台选择问题:")
+            print(f"   玩家Y坐标: {player_y}")
+            print(f"   所有平台Y坐标: {[p['y'] for p in all_platforms]}")
+            print(f"   未找到有效的目标平台（所有平台都在玩家后方）")
+            platform_center = None
 
     # 计算距离
     distance = 0
