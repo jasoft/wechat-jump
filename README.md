@@ -43,7 +43,11 @@ cd wechat-jump
 
 ### 2. 安装Python依赖
 ```bash
+# 使用 pip
 pip install -r requirements.txt
+
+# 或使用 uv（更快的包管理器）
+uv pip install -r requirements.txt
 ```
 
 ### 3. 安装ADB工具（macOS）
@@ -78,13 +82,27 @@ python simple_screenshot.py
 
 ### 模型训练
 ```bash
-# 1. 准备数据集（使用labelimg标注）
-labelimg
+# 1. 安装labelimg标注工具
+# 使用 pip（Windows用户推荐使用官方源）：
+pip install -i https://pypi.org/simple/ labelimg
 
-# 2. 划分数据集
+# 使用 uv（更快的包管理器）：
+uv pip install -i https://pypi.org/simple/ labelimg
+
+# 使用 conda：
+# conda install -c conda-forge labelimg
+
+# 2. 准备数据集（使用labelimg标注）
+labelimg
+# 标注说明：
+# - 打开 dataset/screenshot_dataset/ 目录
+# - 选择YOLO格式保存
+# - 标注两类目标：小人(player)和目标平台(platform)
+
+# 3. 划分数据集
 python dataset_split.py
 
-# 3. 训练模型
+# 4. 训练模型
 python train.py
 ```
 
@@ -158,6 +176,30 @@ jump.adb_tap(x, y, duration_ms)
 3. **截图失败**
    - 检查手机USB调试是否开启
    - 确认ADB权限已授权
+
+4. **Windows下labelimg安装失败**
+   ```bash
+   # 如果遇到PyQt5安装问题，尝试以下解决方案：
+
+   # 使用 pip 的方案：
+   # 方案1：使用官方PyPI源
+   pip install -i https://pypi.org/simple/ labelimg
+
+   # 方案2：分步安装
+   pip install -i https://pypi.org/simple/ PyQt5
+   pip install -i https://pypi.org/simple/ labelimg
+
+   # 使用 uv 的方案：
+   # 方案1：使用官方源安装
+   uv pip install -i https://pypi.org/simple/ labelimg
+
+   # 方案2：设置环境变量后安装
+   set UV_INDEX_URL=https://pypi.org/simple/
+   uv pip install labelimg
+
+   # 使用 conda 的方案：
+   conda install -c conda-forge labelimg
+   ```
 
 ## 📊 性能指标
 

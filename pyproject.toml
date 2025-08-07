@@ -1,8 +1,13 @@
 [project]
 name = "wechat-jump"
 version = "0.1.0"
-requires-python = ">=3.13"
+requires-python = ">=3.9"
 dependencies = [
-    "labelimg>=1.8.6",
     "ultralytics>=8.3.158",
+    "pillow>=10.0.0",
+    "pywin32>=311",
+    "mss>=10.0.0",
 ]
+
+[project.optional-dependencies]
+windows = ["pywin32>=308"]
